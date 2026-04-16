@@ -15,7 +15,12 @@ module.exports = async (req, res, next) => {
 
     for (let row of result.rows) {
       const isValid = await bcrypt.compare(apiKey, row.key_hash);
+
       if (isValid) {
+        if (row.expires_at && new Date() > row.expires_at) {
+          return res.status(403).json({ message: 'API key expired' });
+        }
+
         req.appId = row.app_id;
         return next();
       }
